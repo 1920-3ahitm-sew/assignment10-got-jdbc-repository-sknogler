@@ -87,14 +87,15 @@ public class PersonRepository implements Repository {
      */
     private Person insert(Person personToSave) {
         try (
-            Connection conn = DriverManager.getConnection(URL, USERNAME,PASSWORD);
-            PreparedStatement statement = conn.prepareStatement("INSERT INTO APP.PERSON (name, city, house) values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO APP.PERSON (name, city, house) values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS))
         {
-            statement.setString(1, personToSave.getName());
-            statement.setString(1, personToSave.getHouse());
-            statement.setString(1, personToSave.getCity());
 
-            if (statement.executeUpdate() == 0){
+            statement.setString(1, personToSave.getName());
+            statement.setString(2, personToSave.getCity());
+            statement.setString(3, personToSave.getHouse());
+
+            if (statement.executeUpdate() == 0) {
                 throw new SQLException("Creating user failed, no rows affected");
             }
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -104,9 +105,10 @@ public class PersonRepository implements Repository {
                     throw new SQLException("Creating user failed, no ID obtained");
                 }
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             System.err.println(e.getMessage());
         }
+
         return personToSave;
     }
 
