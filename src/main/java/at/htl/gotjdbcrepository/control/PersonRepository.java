@@ -51,8 +51,7 @@ public class PersonRepository implements Repository {
         try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
             try (Statement stmt = conn.createStatement()) {
                 String sql = "DELETE FROM " + TABLE_NAME;
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                final int rowsAffected = pstmt.executeUpdate();
+                stmt.executeUpdate(sql);
             }
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -76,7 +75,7 @@ public class PersonRepository implements Repository {
     @Override
     public Person save(Person newPerson) {
 
-        return null;
+        return insert(newPerson);
     }
 
     /**
@@ -135,7 +134,26 @@ public class PersonRepository implements Repository {
      * @return die gefundene Person oder wenn nicht gefunden wird null zurückgegeben
      */
     public Person find(long id) {
+        try (
+                Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement statement = conn.prepareStatement("SELECT * FROM APP.PERSON WHERE ID=?");
+        ){
+
+            statement.setLong(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"), resultSet.getString("house"));
+                person.setId(resultSet.getLong("id"));
+
+                return person;
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return null;
+
     }
 
     /**
@@ -144,7 +162,26 @@ public class PersonRepository implements Repository {
      * @return Liste aller Personen des gegebenen Hauses
      */
     public List<Person> findByHouse(String house) {
+        List<Person> persons = new ArrayList<>();
 
+        try (
+                Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement statement = conn.prepareStatement("SELECT * FROM APP.PERSON WHERE HOUSE=?");
+        ){
 
+            statement.setString(1, house);
+            ResultSet resultSet = statement.executeQuery();
 
+            while (resultSet.next()) {
+                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"), resultSet.getString("house"));
+                person.setId(resultSet.getLong("id"));
+
+                persons.add(person);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        return persons;
+    }
 }
